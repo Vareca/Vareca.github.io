@@ -1,0 +1,222 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CRYPT | Vareca</title><meta name="author" content="Vareca"><meta name="copyright" content="Vareca"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="RSA 加密原理一、RSA 加密与解密过程RSA 是一种公钥加密算法，其核心在于利用模运算进行加密和解密操作，同时基于特定数学原理保证安全性。 1. 加密 将原始数据表示为一个数m（即原始信息），通过公钥(e, N)对其进行加密。加密公式为$$m^e\ mod\ N &#x3D; c$$其中e为公钥中的加密指数，N为一个大数，c为得到的密文。 2. 解密 使用私钥d对密文c进行解密，解密公式为$$">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CRYPT">
+<meta property="og:url" content="https://vareca.me/2024/12/10/crypto/index.html">
+<meta property="og:site_name" content="Vareca">
+<meta property="og:description" content="RSA 加密原理一、RSA 加密与解密过程RSA 是一种公钥加密算法，其核心在于利用模运算进行加密和解密操作，同时基于特定数学原理保证安全性。 1. 加密 将原始数据表示为一个数m（即原始信息），通过公钥(e, N)对其进行加密。加密公式为$$m^e\ mod\ N &#x3D; c$$其中e为公钥中的加密指数，N为一个大数，c为得到的密文。 2. 解密 使用私钥d对密文c进行解密，解密公式为$$">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg">
+<meta property="article:published_time" content="2024-12-10T05:20:18.762Z">
+<meta property="article:modified_time" content="2024-12-10T05:20:58.443Z">
+<meta property="article:author" content="Vareca">
+<meta property="article:tag" content="持续施工中">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg"><link rel="shortcut icon" href="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg"><link rel="canonical" href="https://vareca.me/2024/12/10/crypto/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CRYPT',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-12-10 13:20:58',
+  isShuoshuo: false
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(20deg,#ff2af2,#07f6ff);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Vareca</span></a><a class="nav-page-title" href="/"><span class="site-name">CRYPT</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">CRYPT</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-12-10T05:20:18.762Z" title="发表于 2024-12-10 13:20:18">2024-12-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-12-10T05:20:58.443Z" title="更新于 2024-12-10 13:20:58">2024-12-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/crypt/">crypt</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/crypt/%E5%8E%9F%E7%90%86/">原理</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">761</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>2分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="RSA-加密原理"><a href="#RSA-加密原理" class="headerlink" title="RSA 加密原理"></a>RSA 加密原理</h1><h3 id="一、RSA-加密与解密过程"><a href="#一、RSA-加密与解密过程" class="headerlink" title="一、RSA 加密与解密过程"></a>一、RSA 加密与解密过程</h3><p>RSA 是一种公钥加密算法，其核心在于利用模运算进行加密和解密操作，同时基于特定数学原理保证安全性。</p>
+<p><b>1. 加密</b></p>
+<p>将原始数据表示为一个数m（即原始信息），通过公钥(e, N)对其进行加密。加密公式为<br>$$<br>m^e\ mod\ N &#x3D; c<br>$$<br>其中e为公钥中的加密指数，N为一个大数，c为得到的密文。</p>
+<p><b>2. 解密</b></p>
+<p>使用私钥d对密文c进行解密，解密公式为<br>$$<br>c^d\ mod\ N &#x3D; m<br>$$<br>通过这两个公式可以推导出<br>$$<br>m^{ed}\ mod\ N &#x3D; m<br>$$<br>这就表明了加密与解密过程的可逆性。</p>
+<h3 id="二、关键参数计算"><a href="#二、关键参数计算" class="headerlink" title="二、关键参数计算"></a>二、关键参数计算</h3><p>在 RSA 算法中，如何选取e，d的值是最为关键的问题，这涉及到欧拉定理的应用。</p>
+<p><b>1. 欧拉定理</b><br>$$<br>m^{\varphi(n)}\equiv 1\ (mod\ n)，其中\varphi(n)为欧拉函数，表示小于或等于n的正整数中与n互质的数的个数。<br>$$<br><b>2. 参数推导</b></p>
+<p>对欧拉定理公式进行变换，先在等式两端同时取k次幂（k为任意正整数），接着在两端同时乘m，最后将模运算写在等式左边，得到<br>$$<br>m^{k\varphi(n)}\equiv 1\ (mod\ n)\qquad m^{k\varphi(n)}*m\equiv m\ (mod\ n)\qquad 即:m^{k\varphi(n)+1}\ mod\ n &#x3D; m<br>$$<br>与加密解密公式对应，可得到<br>$$<br>ed &#x3D; k\varphi(n)+1\qquad 即:d&#x3D;\frac{k\varphi(n)+1}{e}<br>$$<br><b>3. 欧拉函数性质</b></p>
+<ul>
+<li><p>当n为质数时，有<br>$$<br>\varphi(p)&#x3D;p - 1<br>$$</p>
+</li>
+<li><p>对于任意两个互质的整数p，q，有<br>$$<br>\varphi(p*q)&#x3D;\varphi(p)*\varphi(q)<br>$$</p>
+</li>
+</ul>
+<h3 id="三、公钥与私钥生成示例"><a href="#三、公钥与私钥生成示例" class="headerlink" title="三、公钥与私钥生成示例"></a>三、公钥与私钥生成示例</h3><p>以两个质数p &#x3D; 17，q &#x3D; 23为例，n &#x3D; p<em>q &#x3D; 391，则</em><br>$$<br>\varphi(391)&#x3D;\varphi(17)<em>\varphi(23)&#x3D;352<br>$$<br>取e &#x3D; 3（需保证e与n的欧拉函数值互质），在k &#x3D; 5的情况下，计算私钥d：<br>$$<br>d&#x3D;\frac{k\varphi(n)+1}{e}&#x3D;\frac{5</em>352+1}{3}&#x3D;587<br>$$<br>算法将e和n公布作为加密时的公钥，而d保存下来作为解密时的私钥。由于其他人难以知道p和q这两个质因数，无法计算出n的欧拉函数值，从而难以破译私钥d。</p>
+<h3 id="四、加解密示例"><a href="#四、加解密示例" class="headerlink" title="四、加解密示例"></a>四、加解密示例</h3><p>假设要加密的字符为“a”，其对应的 ASCII 码为97，即m &#x3D; 97。使用公钥(e &#x3D; 3, N &#x3D; 391)进行加密：<br>$$<br>97^3\ mod\ 391 &#x3D; 79<br>$$<br>这里79为密文。</p>
+<p>为了解密，使用私钥d &#x3D; 587进行计算：<br>$$<br>79^{587}\ mod\ 391 &#x3D; 97<br>$$<br>得到原始数据97。</p>
+<h3 id="五、快速幂算法实现"><a href="#五、快速幂算法实现" class="headerlink" title="五、快速幂算法实现"></a>五、快速幂算法实现</h3><p>以下是使用快速幂算法求模的 Python 代码，用于在加密和解密过程中高效计算幂次取模：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">quick_pow</span>(<span class="params">c, d, n</span>):</span><br><span class="line">    result = <span class="number">1</span></span><br><span class="line">    c %= n</span><br><span class="line">    <span class="keyword">while</span> d &gt; <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">if</span> d &amp; <span class="number">1</span>:  <span class="comment"># 判断n的二进制最低位是否为1</span></span><br><span class="line">            result = (result * c) % n</span><br><span class="line">        c = (c * c) % n</span><br><span class="line">        d &gt;&gt;= <span class="number">1</span>  <span class="comment"># 右移一位，相当于d // 2</span></span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line"></span><br><span class="line"><span class="comment">#调用</span></span><br><span class="line">c = </span><br><span class="line">d = </span><br><span class="line">n = </span><br><span class="line"><span class="built_in">print</span>(quick_pow(c, d, n))</span><br></pre></td></tr></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://vareca.me">Vareca</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://vareca.me/2024/12/10/crypto/">https://vareca.me/2024/12/10/crypto/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://vareca.me" target="_blank">Vareca</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%8C%81%E7%BB%AD%E6%96%BD%E5%B7%A5%E4%B8%AD/">持续施工中</a></div><div class="post-share"><div class="social-share" data-image="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg" data-sites="facebook,twitter,weibo,wechat,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/wechatreward.jpg" target="_blank"><img class="post-qr-code-img" src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/wechatreward.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/thans.jpg" target="_blank"><img class="post-qr-code-img" src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/thans.jpg" alt="感谢赞助"/></a><div class="post-qr-code-desc">感谢赞助</div></li><li class="reward-item"><a href="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/zfbreward.jpg" target="_blank"><img class="post-qr-code-img" src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/zfbreward.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2024/12/06/sqlmap/" title="sqlmap指令"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">sqlmap指令</div></div><div class="info-2"><div class="info-item-1">一、目标-u  用途：指定目标URL，用于检测注入点。（url使用&#39;或&quot;包裹） 示例： sqlmap -u &quot;http://example.com/?id=1&quot; ，这将对给定的URL进行SQL注入检测。  -m  用途：用于批量扫描，指定包含多个目标URL的文件。 示例： sqlmap -m targets.txt ，其中 targets.txt 是一个包含多个URL的文本文件，每行一个URL。  -r  用途：用于从文件中读取HTTP请求（如POST请求）。通常用于处理通过Burp Suite等工具捕获并保存的请求。 示例： sqlmap -r request.txt ，其中 request.txt 是包含HTTP请求内容的文件。  --cookie  用途：用于进行cookie注入，即通过设置特定的cookie值来测试注入。 示例： sqlmap -u &quot;http://example.com/?id=1&quot; --cookie &quot;user=123&quot;...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/12/03/SQL_injection/" title="SQL注入"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-12-03</div><div class="info-item-2">SQL注入</div></div><div class="info-2"><div class="info-item-1">数据库基础知识数据库就是用来存放数据的仓库。 RDBMS 指关系型数据库管理系统。RDBMS 中的数据存储在被称为表的数据库对象中。 表是相关的数据项的集合，它由列和行组成。 库—表—列—行  重要的库：Information_schema库​	information_schema 是MySQL中的一个信息数据库。它存储了数据库管理系统自身的元数据，包括数据库、表、列、索引等对象的定义信息，还有用户权限等相关内容。以下列举常用的三个表，并以缩进代表层级，以粗体显示重要的列。 把 information_schema...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Vareca</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Vareca"><i class="fab fa-github"></i><span>My GitHub</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">CTF使我疯狂旋转!</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#RSA-%E5%8A%A0%E5%AF%86%E5%8E%9F%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">RSA 加密原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E3%80%81RSA-%E5%8A%A0%E5%AF%86%E4%B8%8E%E8%A7%A3%E5%AF%86%E8%BF%87%E7%A8%8B"><span class="toc-number">1.0.1.</span> <span class="toc-text">一、RSA 加密与解密过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%85%B3%E9%94%AE%E5%8F%82%E6%95%B0%E8%AE%A1%E7%AE%97"><span class="toc-number">1.0.2.</span> <span class="toc-text">二、关键参数计算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%85%AC%E9%92%A5%E4%B8%8E%E7%A7%81%E9%92%A5%E7%94%9F%E6%88%90%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.0.3.</span> <span class="toc-text">三、公钥与私钥生成示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%8A%A0%E8%A7%A3%E5%AF%86%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.0.4.</span> <span class="toc-text">四、加解密示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%BF%AB%E9%80%9F%E5%B9%82%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0"><span class="toc-number">1.0.5.</span> <span class="toc-text">五、快速幂算法实现</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/12/10/crypto/" title="CRYPT">CRYPT</a><time datetime="2024-12-10T05:20:18.762Z" title="发表于 2024-12-10 13:20:18">2024-12-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/12/06/sqlmap/" title="sqlmap指令">sqlmap指令</a><time datetime="2024-12-06T07:38:07.817Z" title="发表于 2024-12-06 15:38:07">2024-12-06</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/12/03/SQL_injection/" title="SQL注入">SQL注入</a><time datetime="2024-12-03T10:18:38.354Z" title="发表于 2024-12-03 18:18:38">2024-12-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/11/10/SQL_founction/" title="SQL注入常用MySQL函数">SQL注入常用MySQL函数</a><time datetime="2024-11-10T08:31:23.629Z" title="发表于 2024-11-10 16:31:23">2024-11-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/11/08/Linux/" title="Linux操作命令">Linux操作命令</a><time datetime="2024-11-08T09:21:28.515Z" title="发表于 2024-11-08 17:21:28">2024-11-08</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(20deg,#07f6ff,#ff2af2);"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024 By Vareca</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.isShuoshuo
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: 'pQqMYlTEhUMxZC4RkrZOiHVZ-gzGzoHsz',
+      appKey: 'd93RV6GMLwZaI4Lv2I8lz4Bl',
+      avatar: 'monsterid',
+      serverURLs: 'https://pqqmylte.lc-cn-n1-shared.com',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !false) {
+    if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
