@@ -1,0 +1,329 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>SQL注入常用MySQL函数 | Vareca</title><meta name="author" content="Vareca"><meta name="copyright" content="Vareca"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="SQL 注入攻击通过向应用程序提供恶意的 SQL 语句，企图操控数据库执行攻击者的命令。攻击者往往利用一些常见的 MySQL 函数来进行 SQL 注入，主要目的是绕过验证、提取敏感信息或破坏数据。以下是一些在 SQL 注入中常用的函数： 1.字符串函数 CONCAT(): 用于连接字符串。攻击者可以使用它来构造复杂的查询，拼接多条信息。  1SELECT CONCAT(username, &amp;#x2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQL注入常用MySQL函数">
+<meta property="og:url" content="https://vareca.me/2025/02/21/SQL_founction/index.html">
+<meta property="og:site_name" content="Vareca">
+<meta property="og:description" content="SQL 注入攻击通过向应用程序提供恶意的 SQL 语句，企图操控数据库执行攻击者的命令。攻击者往往利用一些常见的 MySQL 函数来进行 SQL 注入，主要目的是绕过验证、提取敏感信息或破坏数据。以下是一些在 SQL 注入中常用的函数： 1.字符串函数 CONCAT(): 用于连接字符串。攻击者可以使用它来构造复杂的查询，拼接多条信息。  1SELECT CONCAT(username, &amp;#x2">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg">
+<meta property="article:published_time" content="2025-02-21T10:23:12.428Z">
+<meta property="article:modified_time" content="2024-12-06T10:52:46.487Z">
+<meta property="article:author" content="Vareca">
+<meta property="article:tag" content="Finish">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "SQL注入常用MySQL函数",
+  "url": "https://vareca.me/2025/02/21/SQL_founction/",
+  "image": "https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg",
+  "datePublished": "2025-02-21T10:23:12.428Z",
+  "dateModified": "2024-12-06T10:52:46.487Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Vareca",
+      "url": "https://vareca.me/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg"><link rel="canonical" href="https://vareca.me/2025/02/21/SQL_founction/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'SQL注入常用MySQL函数',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(20deg,#ff2af2,#07f6ff);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Vareca</span></a><a class="nav-page-title" href="/"><span class="site-name">SQL注入常用MySQL函数</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">SQL注入常用MySQL函数</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-02-21T10:23:12.428Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-12-06T10:52:46.487Z" title="更新于 2024-12-06 18:52:46">2024-12-06</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/web/">web</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/web/SQL%E6%B3%A8%E5%85%A5/">SQL注入</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">921</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>SQL 注入攻击通过向应用程序提供恶意的 SQL 语句，企图操控数据库执行攻击者的命令。攻击者往往利用一些常见的 MySQL 函数来进行 SQL 注入，主要目的是绕过验证、提取敏感信息或破坏数据。以下是一些在 SQL 注入中常用的函数：</p>
+<h3 id="1-字符串函数"><a href="#1-字符串函数" class="headerlink" title="1.字符串函数"></a>1.字符串函数</h3><ul>
+<li>CONCAT(): 用于连接字符串。攻击者可以使用它来构造复杂的查询，拼接多条信息。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> CONCAT(username, <span class="string">&#x27;:&#x27;</span>, password) <span class="keyword">FROM</span> users;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>CONCAT_WS(): 类似于 CONCAT()，但允许用指定的分隔符连接多个字符串。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> CONCAT_WS(<span class="string">&#x27;-&#x27;</span>, id, username, email) <span class="keyword">FROM</span> users;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>CHAR(): 通过传递 ASCII 码来构造字符串，可以用来绕过过滤器。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="type">CHAR</span>(<span class="number">117</span>, <span class="number">115</span>, <span class="number">101</span>, <span class="number">114</span>);</span><br><span class="line"><span class="comment">-- 返回 &#x27;user&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>GROUP_CONCAT(): MySQL 中的一个聚合函数，它用于将来自同一组的多个值连接成一个字符串。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GROUP_CONCAT([<span class="keyword">DISTINCT</span>] column_name [<span class="keyword">ORDER</span> <span class="keyword">BY</span> clause] [SEPARATOR <span class="string">&#x27;separator_string&#x27;</span>]);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>LOAD_FILE(): 用于读取服务器上的文件，可能被滥用来读取系统文件（如果 MySQL 用户有足够权限）。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> LOAD_FILE(<span class="string">&#x27;/etc/passwd&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>HEX() &#x2F; UNHEX(): 转换数据为十六进制或从十六进制转换回来，用于绕过简单的字符串过滤。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> HEX(<span class="string">&#x27;data&#x27;</span>);</span><br><span class="line"><span class="keyword">SELECT</span> UNHEX(<span class="string">&#x27;64617461&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-信息函数"><a href="#2-信息函数" class="headerlink" title="2.信息函数"></a>2.信息函数</h3><ul>
+<li>VERSION(): 返回 MySQL 数据库的版本信息。攻击者可能会利用它了解数据库环境。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> VERSION();</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>DATABASE(): 返回当前选中的数据库名。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> DATABASE();</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>USER() &#x2F; CURRENT_USER(): 获取当前 MySQL 用户名。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">USER</span>();</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>@@datadir: 用于获取数据库数据存储的目录路径。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@datadir</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>@@version_compile_os: 返回 MySQL 服务器所运行的操作系统类型。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@version_compile_os</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-条件判断函数"><a href="#3-条件判断函数" class="headerlink" title="3.条件判断函数"></a>3.条件判断函数</h3><ul>
+<li>IF(): 可用于条件判断，构造不同的查询路径。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> IF(<span class="number">1</span><span class="operator">=</span><span class="number">1</span>, <span class="string">&#x27;True&#x27;</span>, <span class="string">&#x27;False&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>IFNULL(): 如果第一个参数为 NULL，返回第二个参数，可以在注入中使用来绕过 NULL 值过滤。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> IFNULL(<span class="keyword">NULL</span>, <span class="string">&#x27;replacement&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>CASE: 多条件判断语句，可以根据多个条件来控制注入结果。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">CASE</span> <span class="keyword">WHEN</span> <span class="number">1</span><span class="operator">=</span><span class="number">1</span> <span class="keyword">THEN</span> <span class="string">&#x27;A&#x27;</span> <span class="keyword">ELSE</span> <span class="string">&#x27;B&#x27;</span> <span class="keyword">END</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-加密和编码函数"><a href="#4-加密和编码函数" class="headerlink" title="4.加密和编码函数"></a>4.加密和编码函数</h3><ul>
+<li>MD5() &#x2F; SHA1(): 返回字符串的 MD5 或 SHA1 散列值，可以用于密码猜测攻击中（例如比对已知的散列值）。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> MD5(<span class="string">&#x27;password&#x27;</span>);</span><br><span class="line"><span class="keyword">SELECT</span> SHA1(<span class="string">&#x27;password&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-SQL-数据处理函数"><a href="#5-SQL-数据处理函数" class="headerlink" title="5.SQL 数据处理函数"></a>5.SQL 数据处理函数</h3><ul>
+<li>GROUP_CONCAT(): 将多行数据合并为一行，常用于 SQL 注入时获取大量数据。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> GROUP_CONCAT(column_name) <span class="keyword">FROM</span> information_schema.columns <span class="keyword">WHERE</span> table_name <span class="operator">=</span> <span class="string">&#x27;users&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>UNION: 并非严格意义上的函数，但常用于 SQL 注入攻击，允许攻击者合并多个查询结果。结合其他函数可以获取任意表的数据。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> id, username <span class="keyword">FROM</span> users <span class="keyword">UNION</span> <span class="keyword">SELECT</span> <span class="number">1</span>, VERSION();</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-盲注相关函数"><a href="#6-盲注相关函数" class="headerlink" title="6.盲注相关函数"></a>6.盲注相关函数</h3><ul>
+<li>SLEEP(): 用于时间盲注，故意延迟查询响应时间，帮助攻击者判断条件是否为真。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> IF(<span class="number">1</span><span class="operator">=</span><span class="number">1</span>, SLEEP(<span class="number">5</span>), <span class="string">&#x27;false&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>BENCHMARK(): 通过执行重复的操作来延迟响应时间，类似于时间盲注的用途。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> BENCHMARK(<span class="number">1000000</span>, MD5(<span class="string">&#x27;test&#x27;</span>));</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-数据库和表信息获取函数"><a href="#7-数据库和表信息获取函数" class="headerlink" title="7.数据库和表信息获取函数"></a>7.数据库和表信息获取函数</h3><ul>
+<li>information_schema: 并非函数，但这是一个特殊的系统数据库，包含所有表、列等元数据信息。攻击者通常会利用它来枚举数据库结构。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name <span class="keyword">FROM</span> information_schema.tables <span class="keyword">WHERE</span> table_schema <span class="operator">=</span> <span class="string">&#x27;your_database&#x27;</span>;</span><br><span class="line"><span class="keyword">SELECT</span> column_name <span class="keyword">FROM</span> information_schema.columns <span class="keyword">WHERE</span> table_name <span class="operator">=</span> <span class="string">&#x27;users&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-其他函数"><a href="#8-其他函数" class="headerlink" title="8.其他函数"></a>8.其他函数</h3><ul>
+<li>RAND(): 生成随机数，攻击者有时会利用随机函数制造不易检测的注入模式。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT RAND();</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>FLOOR(): 用于生成随机整数，通过与 RAND() 一起使用，可能用于盲注攻击。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="built_in">FLOOR</span>(RAND()<span class="operator">*</span><span class="number">100</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>DISTINCT: 去重。</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">DISTINCT</span> table_schema <span class="keyword">FROM</span> information_schema.tables;</span><br></pre></td></tr></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://vareca.me">Vareca</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://vareca.me/2025/02/21/SQL_founction/">https://vareca.me/2025/02/21/SQL_founction/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://vareca.me" target="_blank">Vareca</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Finish/">Finish</a></div><div class="post-share"><div class="social-share" data-image="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/02/21/Markdown/" title="Markdown"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Markdown</div></div><div class="info-2"><div class="info-item-1">这篇文章记录了Markdown语法，其中需要在字符后加空格的均以（有空格）标注。标题（有空格） 使用 # 表示不同级别的标题（1到6级）  1234567891011# 一级标题## 二级标题### 三级标题#### 四级标题##### 五级标题###### 六级标题  粗体和斜体 粗体：使用 ** 或 __ 包围文本  斜体：使用 * 或 _ 包围文本  粗体+斜体：使用 *** 或 ___ 包围文本   12345678**粗体**__粗体__*斜体*_斜体_***粗体+斜体***___粗体+斜体___  列表(有空格) 有序列表：使用数字加点（如 1. ）表示  1231. 有序列表项2. 有序列表项3. 有序列表项   无序列表：使用 -、+ 或 * 来创建  123- 无序列表项* 无序列表项+ 无序列表项  链接 链接文本可有可无 一般链接  1[链接文本](https://example.com)   带标题的链接  1[链接文本](https://example.com...</div></div></div></a><a class="pagination-related" href="/2025/02/21/SQL_injection/" title="SQL注入"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">SQL注入</div></div><div class="info-2"><div class="info-item-1">数据库基础知识数据库就是用来存放数据的仓库。 RDBMS 指关系型数据库管理系统。RDBMS 中的数据存储在被称为表的数据库对象中。 表是相关的数据项的集合，它由列和行组成。 库—表—列—行  重要的库：Information_schema库​	information_schema 是MySQL中的一个信息数据库。它存储了数据库管理系统自身的元数据，包括数据库、表、列、索引等对象的定义信息，还有用户权限等相关内容。以下列举常用的三个表，并以缩进代表层级，以粗体显示重要的列。 把 information_schema...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/02/21/Linux/" title="Linux操作命令"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-21</div><div class="info-item-2">Linux操作命令</div></div><div class="info-2"><div class="info-item-1">Linux文件与目录操作命令  ls：列出当前目录下的文件和目录。参数： -l：显示详细信息（权限、所有者、大小、时间等）。 -a：显示隐藏文件（以.开头的文件）。 cd：更改当前工作目录。示例：cd &#x2F;home&#x2F;user 进入 &#x2F;home&#x2F;user 目录。 cd ..：返回上一级目录。 pwd：显示当前工作目录的完整路径。mkdir：创建新目录。示例：mkdir newfolder 创建名为 newfolder 的新目录。 rmdir：删除空目录。rm：删除文件或目录。参数： -r：递归删除目录及其内容。 -f：强制删除文件。 示例：rm -rf &#x2F;path&#x2F;to&#x2F;directory 强制递归删除一个目录及其内容。 cp：复制文件或目录。示例：cp file1 file2 复制 file1 为 file2。 参数：-r 递归复制目录。 mv：移动或重命名文件或目录。示例：mv oldfile newfile 将 oldfile 重命名为...</div></div></div></a><a class="pagination-related" href="/2025/02/21/Markdown/" title="Markdown"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-21</div><div class="info-item-2">Markdown</div></div><div class="info-2"><div class="info-item-1">这篇文章记录了Markdown语法，其中需要在字符后加空格的均以（有空格）标注。标题（有空格） 使用 # 表示不同级别的标题（1到6级）  1234567891011# 一级标题## 二级标题### 三级标题#### 四级标题##### 五级标题###### 六级标题  粗体和斜体 粗体：使用 ** 或 __ 包围文本  斜体：使用 * 或 _ 包围文本  粗体+斜体：使用 *** 或 ___ 包围文本   12345678**粗体**__粗体__*斜体*_斜体_***粗体+斜体***___粗体+斜体___  列表(有空格) 有序列表：使用数字加点（如 1. ）表示  1231. 有序列表项2. 有序列表项3. 有序列表项   无序列表：使用 -、+ 或 * 来创建  123- 无序列表项* 无序列表项+ 无序列表项  链接 链接文本可有可无 一般链接  1[链接文本](https://example.com)   带标题的链接  1[链接文本](https://example.com...</div></div></div></a><a class="pagination-related" href="/2025/02/21/sqlmap/" title="sqlmap指令"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-21</div><div class="info-item-2">sqlmap指令</div></div><div class="info-2"><div class="info-item-1">一、目标-u  用途：指定目标URL，用于检测注入点。（url使用&#39;或&quot;包裹） 示例： sqlmap -u &quot;http://example.com/?id=1&quot; ，这将对给定的URL进行SQL注入检测。  -m  用途：用于批量扫描，指定包含多个目标URL的文件。 示例： sqlmap -m targets.txt ，其中 targets.txt 是一个包含多个URL的文本文件，每行一个URL。  -r  用途：用于从文件中读取HTTP请求（如POST请求）。通常用于处理通过Burp Suite等工具捕获并保存的请求。 示例： sqlmap -r request.txt ，其中 request.txt 是包含HTTP请求内容的文件。  --cookie  用途：用于进行cookie注入，即通过设置特定的cookie值来测试注入。 示例： sqlmap -u &quot;http://example.com/?id=1&quot; --cookie &quot;user=123&quot;...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Vareca</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Vareca"><i class="fab fa-github"></i><span>My GitHub</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">CTF使我疯狂旋转!</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%87%BD%E6%95%B0"><span class="toc-number">1.</span> <span class="toc-text">1.字符串函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BF%A1%E6%81%AF%E5%87%BD%E6%95%B0"><span class="toc-number">2.</span> <span class="toc-text">2.信息函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%9D%A1%E4%BB%B6%E5%88%A4%E6%96%AD%E5%87%BD%E6%95%B0"><span class="toc-number">3.</span> <span class="toc-text">3.条件判断函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%8A%A0%E5%AF%86%E5%92%8C%E7%BC%96%E7%A0%81%E5%87%BD%E6%95%B0"><span class="toc-number">4.</span> <span class="toc-text">4.加密和编码函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-SQL-%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0"><span class="toc-number">5.</span> <span class="toc-text">5.SQL 数据处理函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E7%9B%B2%E6%B3%A8%E7%9B%B8%E5%85%B3%E5%87%BD%E6%95%B0"><span class="toc-number">6.</span> <span class="toc-text">6.盲注相关函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E6%95%B0%E6%8D%AE%E5%BA%93%E5%92%8C%E8%A1%A8%E4%BF%A1%E6%81%AF%E8%8E%B7%E5%8F%96%E5%87%BD%E6%95%B0"><span class="toc-number">7.</span> <span class="toc-text">7.数据库和表信息获取函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-%E5%85%B6%E4%BB%96%E5%87%BD%E6%95%B0"><span class="toc-number">8.</span> <span class="toc-text">8.其他函数</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/sqlmap/" title="sqlmap指令">sqlmap指令</a><time datetime="2025-02-21T10:23:12.431Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/SQL_injection/" title="SQL注入">SQL注入</a><time datetime="2025-02-21T10:23:12.430Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/SQL_founction/" title="SQL注入常用MySQL函数">SQL注入常用MySQL函数</a><time datetime="2025-02-21T10:23:12.428Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/Markdown/" title="Markdown">Markdown</a><time datetime="2025-02-21T10:23:12.426Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/Linux/" title="Linux操作命令">Linux操作命令</a><time datetime="2025-02-21T10:23:12.425Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div></div></div></div></div></main><footer id="footer" style="background: falinear-gradient(20deg,#07f6ff,#ff2af2);"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By Vareca</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.3</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: 'pQqMYlTEhUMxZC4RkrZOiHVZ-gzGzoHsz',
+      appKey: 'd93RV6GMLwZaI4Lv2I8lz4Bl',
+      avatar: 'monsterid',
+      serverURLs: 'https://pqqmylte.lc-cn-n1-shared.com',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !false) {
+    if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

