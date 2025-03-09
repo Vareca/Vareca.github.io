@@ -1,0 +1,335 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PHP反序列化漏洞 | Vareca</title><meta name="author" content="Vareca"><meta name="copyright" content="Vareca"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PHP反序列化​	PHP反序列化是PHP编程中的一个概念，在介绍PHP反序列化漏洞之前，先来介绍一下PHP反序列化的作用及原理，以及其可能造成的安全问题。 定义 ​	在PHP中，序列化是将对象或数据结构转换为可存储或传输的字符串格式的过程，而反序列化则是相反的操作，它将序列化后的字符串重新转换回原来的PHP对象或数据结构，以便在程序中继续使用。 作用  数据存储和恢复：方便将复杂的数据结构，如对象">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PHP反序列化漏洞">
+<meta property="og:url" content="https://vareca.me/2025/03/09/PHP_Deserialization/index.html">
+<meta property="og:site_name" content="Vareca">
+<meta property="og:description" content="PHP反序列化​	PHP反序列化是PHP编程中的一个概念，在介绍PHP反序列化漏洞之前，先来介绍一下PHP反序列化的作用及原理，以及其可能造成的安全问题。 定义 ​	在PHP中，序列化是将对象或数据结构转换为可存储或传输的字符串格式的过程，而反序列化则是相反的操作，它将序列化后的字符串重新转换回原来的PHP对象或数据结构，以便在程序中继续使用。 作用  数据存储和恢复：方便将复杂的数据结构，如对象">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg">
+<meta property="article:published_time" content="2025-03-09T14:17:19.448Z">
+<meta property="article:modified_time" content="2025-03-09T14:16:07.479Z">
+<meta property="article:author" content="Vareca">
+<meta property="article:tag" content="持续施工中PH">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PHP反序列化漏洞",
+  "url": "https://vareca.me/2025/03/09/PHP_Deserialization/",
+  "image": "https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg",
+  "datePublished": "2025-03-09T14:17:19.448Z",
+  "dateModified": "2025-03-09T14:16:07.479Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Vareca",
+      "url": "https://vareca.me/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg"><link rel="canonical" href="https://vareca.me/2025/03/09/PHP_Deserialization/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PHP反序列化漏洞',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background: linear-gradient(20deg,#ff2af2,#07f6ff);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Vareca</span></a><a class="nav-page-title" href="/"><span class="site-name">PHP反序列化漏洞</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PHP反序列化漏洞</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-03-09T14:17:19.448Z" title="发表于 2025-03-09 22:17:19">2025-03-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-09T14:16:07.479Z" title="更新于 2025-03-09 22:16:07">2025-03-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/web%E6%BC%8F%E6%B4%9E/">web漏洞</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/web%E6%BC%8F%E6%B4%9E/PHP%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">PHP反序列化</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h3 id="PHP反序列化"><a href="#PHP反序列化" class="headerlink" title="PHP反序列化"></a>PHP反序列化</h3><p>​	PHP反序列化是PHP编程中的一个概念，在介绍PHP反序列化漏洞之前，先来介绍一下PHP反序列化的作用及原理，以及其可能造成的安全问题。</p>
+<p><b>定义</b></p>
+<p>​	在PHP中，序列化是将对象或数据结构转换为可存储或传输的字符串格式的过程，而反序列化则是相反的操作，它将序列化后的字符串重新转换回原来的PHP对象或数据结构，以便在程序中继续使用。</p>
+<p><b>作用</b></p>
+<ul>
+<li><p>数据存储和恢复：方便将复杂的数据结构，如对象、数组等存储到文件、数据库或通过网络传输，之后可以通过反序列化恢复数据供程序使用。比如将用户购物车中的商品信息以序列化形式存入数据库，用户下次访问时再反序列化出来展示。</p>
+</li>
+<li><p>对象状态重建：在一些跨页面或跨请求的操作中，能够保持对象的状态。例如在一个多步骤的表单提交过程中，可将包含用户输入数据的对象序列化后存储在会话中，在后续步骤中反序列化恢复对象来继续处理。</p>
+</li>
+</ul>
+<p><b>实现方式</b></p>
+<p>​	PHP提供了 <code>unserialize()</code> 函数来进行反序列化操作。示例代码如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">// 定义一个简单的类</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyClass</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$property</span> = <span class="string">&#x27;Hello World&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建类的实例</span></span><br><span class="line"><span class="variable">$obj</span> = <span class="keyword">new</span> <span class="title class_">MyClass</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 序列化对象</span></span><br><span class="line"><span class="variable">$serializedObj</span> = <span class="title function_ invoke__">serialize</span>(<span class="variable">$obj</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 反序列化对象</span></span><br><span class="line"><span class="variable">$unserializedObj</span> = <span class="title function_ invoke__">unserialize</span>(<span class="variable">$serializedObj</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出反序列化后对象的属性值</span></span><br><span class="line"><span class="keyword">echo</span> <span class="variable">$unserializedObj</span>-&gt;property; </span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><b>安全问题</b></p>
+<p>​	如果对不可信的数据进行反序列化，可能导致安全漏洞，如代码注入、远程代码执行等。攻击者可以构造恶意的序列化数据，在反序列化时执行恶意代码。例如，攻击者通过篡改提交到服务器的序列化数据，让服务器在反序列化时执行删除重要文件等危险操作。</p>
+<h3 id="PHP反序列化漏洞"><a href="#PHP反序列化漏洞" class="headerlink" title="PHP反序列化漏洞"></a>PHP反序列化漏洞</h3><p><b>漏洞原理</b></p>
+<p>​	PHP反序列化过程中，如果对用户输入等不可信数据未进行充分验证和过滤就直接反序列化，攻击者可构造恶意序列化数据。当服务器对其反序列化时，会触发对象的魔法函数等操作，攻击者利用这些可执行任意代码、执行系统命令或获取敏感信息等。</p>
+<p><b>漏洞示例</b></p>
+<p>​	以下是一个简单示例展示反序列化漏洞：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$cmd</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="title function_ invoke__">system</span>(<span class="variable">$this</span>-&gt;cmd);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 假设从用户输入获取序列化数据</span></span><br><span class="line"><span class="variable">$serialized_data</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;data&#x27;</span>];</span><br><span class="line"><span class="variable">$obj</span> = <span class="title function_ invoke__">unserialize</span>(<span class="variable">$serialized_data</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>​	攻击者可通过访问 <code>http://example.com/test.php?data=O:4:&quot;Test&quot;:1:&#123;s:3:&quot;cmd&quot;;s:10:&quot;rm -rf /&quot;;&#125;</code> ，构造恶意数据删除服务器根目录下所有文件。其中，<code>O:4:&quot;Test&quot;:1:&#123;s:3:&quot;cmd&quot;;s:10:&quot;rm -rf /&quot;;&#125;</code> 是对包含 cmd 属性且值为 <code>rm -rf /</code> 的 Test 类对象进行序列化后的结果。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 针对上面的示例编写的序列化代码</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$cmd</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$obj</span> = <span class="keyword">new</span> <span class="title class_">Test</span>();</span><br><span class="line"><span class="variable">$obj</span>-&gt;cmd = <span class="string">&#x27;rm -rf /&#x27;</span>;</span><br><span class="line"><span class="variable">$serialized</span> = <span class="title function_ invoke__">serialize</span>(<span class="variable">$obj</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="variable">$serialized</span>; </span><br></pre></td></tr></table></figure>
+
+<p><b>魔法函数</b></p>
+<p>在PHP中，魔法函数是具有特殊名称和功能的预定义函数，它们会在特定的场景下自动被调用。通常有一些PHP的魔法函数会导致反序列化漏洞，如：</p>
+<ol>
+<li><code>__construct() </code></li>
+</ol>
+<ul>
+<li><p>作用：对象创建时自动调用。</p>
+</li>
+<li><p>触发场景：反序列化时若对象未初始化，可能触发构造函数。</p>
+</li>
+<li><p>风险：若构造函数中执行了未过滤的用户可控操作（如文件操作、数据库查询），攻击者可通过构造恶意对象执行任意代码。</p>
+</li>
+<li><p>示例：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$file</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="title function_ invoke__">unlink</span>(<span class="variable">$this</span>-&gt;file); <span class="comment">// 若$file可控，可删除任意文件</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ol start="2">
+<li><code>__destruct()</code></li>
+</ol>
+<ul>
+<li><p>作用：对象销毁时自动调用。</p>
+</li>
+<li><p>触发场景：反序列化后对象生命周期结束时触发。</p>
+</li>
+<li><p>风险：若析构函数中调用了用户可控的系统命令或敏感操作（如 system() 、 exec() ），攻击者可直接执行恶意代码。</p>
+</li>
+<li><p>示例：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$cmd</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="title function_ invoke__">system</span>(<span class="variable">$this</span>-&gt;cmd); <span class="comment">// 直接执行命令</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ol start="3">
+<li><code>__wakeup() </code></li>
+</ol>
+<ul>
+<li><p>作用：反序列化时自动调用（PHP 5.6.25之前）。</p>
+</li>
+<li><p>触发场景： unserialize() 函数执行时触发。</p>
+</li>
+<li><p>风险：若函数中存在未过滤的用户输入处理逻辑，攻击者可通过构造恶意对象绕过安全限制。</p>
+</li>
+<li><p>注意：PHP 5.6.25后，若对象属性数量大于实际定义的属性数量， __wakeup() 会被跳过（可被利用绕过检测）。</p>
+</li>
+</ul>
+<ol start="4">
+<li><code>__sleep() </code></li>
+</ol>
+<ul>
+<li><p>作用：序列化时自动调用。</p>
+</li>
+<li><p>触发场景： serialize() 函数执行时触发。</p>
+</li>
+<li><p>风险：若函数中执行了敏感操作（如保存数据库连接状态），攻击者可通过构造特定属性值篡改行为。</p>
+</li>
+</ul>
+<ol start="5">
+<li><code>__call()</code>  和  <code>__callStatic()</code></li>
+</ol>
+<ul>
+<li><p>作用：调用不存在的实例方法或静态方法时触发。</p>
+</li>
+<li><p>触发场景：反序列化后若调用未定义的方法，可触发这两个函数。</p>
+</li>
+<li><p>风险：攻击者可通过控制方法名和参数执行任意函数（如 call_user_func() ）。</p>
+</li>
+<li><p>示例：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__call</span>(<span class="params"><span class="variable">$method</span>, <span class="variable">$args</span></span>) </span>&#123;</span><br><span class="line">        <span class="title function_ invoke__">call_user_func_array</span>(<span class="variable">$method</span>, <span class="variable">$args</span>); <span class="comment">// 可执行任意函数</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ol start="6">
+<li><code>__get()</code>  和 <code> __set()</code></li>
+</ol>
+<ul>
+<li><p>作用：访问或设置不存在的属性时触发。</p>
+</li>
+<li><p>触发场景：反序列化后若访问未定义的属性，可触发这两个函数。</p>
+</li>
+<li><p>风险：攻击者可通过控制属性名和值读取敏感文件或执行代码（如读取 &#x2F;etc&#x2F;passwd ）。</p>
+</li>
+</ul>
+<ol start="7">
+<li><code>__toString()</code></li>
+</ol>
+<ul>
+<li><p>作用：对象被当作字符串使用时触发（如拼接字符串）。</p>
+</li>
+<li><p>触发场景：反序列化后若对象被隐式转换为字符串（如输出到页面），可触发该函数。</p>
+</li>
+<li><p>风险：若函数中包含用户可控的输出或操作，可能导致XSS或命令执行。</p>
+</li>
+</ul>
+<ol start="8">
+<li><code>__invoke()</code></li>
+</ol>
+<ul>
+<li>作用：对象被当作函数调用时触发。</li>
+<li>触发场景：反序列化后若对象被直接调用（如 $obj() ），可触发该函数。</li>
+<li>风险：攻击者可通过构造恶意对象执行任意代码。</li>
+</ul>
+<p><b>POP链（Property-Oriented Programming Chain）</b></p>
+<p>​	本作者现在能力有限，所以先鸽着…</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://vareca.me">Vareca</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://vareca.me/2025/03/09/PHP_Deserialization/">https://vareca.me/2025/03/09/PHP_Deserialization/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://vareca.me" target="_blank">Vareca</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%8C%81%E7%BB%AD%E6%96%BD%E5%B7%A5%E4%B8%ADPH/">持续施工中PH</a></div><div class="post-share"><div class="social-share" data-image="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i>大米!</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/wechatreward.jpg" target="_blank"><img class="post-qr-code-img" src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/wechatreward.jpg" alt="wechat"/></a><div class="post-qr-code-desc">wechat</div></li><li class="reward-item"><a href="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/thanks.jpg" target="_blank"><img class="post-qr-code-img" src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/thanks.jpg" alt="Thanks!"/></a><div class="post-qr-code-desc">Thanks!</div></li><li class="reward-item"><a href="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/zfbreward.jpg" target="_blank"><img class="post-qr-code-img" src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/zfbreward.jpg" alt="alipay"/></a><div class="post-qr-code-desc">alipay</div></li></ul></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/02/21/sqlmap/" title="sqlmap指令"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">sqlmap指令</div></div><div class="info-2"><div class="info-item-1">一、目标-u  用途：指定目标URL，用于检测注入点。（url使用&#39;或&quot;包裹） 示例： sqlmap -u &quot;http://example.com/?id=1&quot; ，这将对给定的URL进行SQL注入检测。  -m  用途：用于批量扫描，指定包含多个目标URL的文件。 示例： sqlmap -m targets.txt ，其中 targets.txt 是一个包含多个URL的文本文件，每行一个URL。  -r  用途：用于从文件中读取HTTP请求（如POST请求）。通常用于处理通过Burp Suite等工具捕获并保存的请求。 示例： sqlmap -r request.txt ，其中 request.txt 是包含HTTP请求内容的文件。  --cookie  用途：用于进行cookie注入，即通过设置特定的cookie值来测试注入。 示例： sqlmap -u &quot;http://example.com/?id=1&quot; --cookie &quot;user=123&quot;...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://skymirror-1331175479.cos.ap-beijing.myqcloud.com/Vareca.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Vareca</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Vareca"><i class="fab fa-github"></i><span>My GitHub</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Mikuだいすき!</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#PHP%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="toc-number">1.</span> <span class="toc-text">PHP反序列化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PHP%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E"><span class="toc-number">2.</span> <span class="toc-text">PHP反序列化漏洞</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/09/PHP_Deserialization/" title="PHP反序列化漏洞">PHP反序列化漏洞</a><time datetime="2025-03-09T14:17:19.448Z" title="发表于 2025-03-09 22:17:19">2025-03-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/sqlmap/" title="sqlmap指令">sqlmap指令</a><time datetime="2025-02-21T10:23:12.431Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/SQL_injection/" title="SQL注入">SQL注入</a><time datetime="2025-02-21T10:23:12.430Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/SQL_founction/" title="SQL注入常用MySQL函数">SQL注入常用MySQL函数</a><time datetime="2025-02-21T10:23:12.428Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/21/Markdown/" title="Markdown">Markdown</a><time datetime="2025-02-21T10:23:12.426Z" title="发表于 2025-02-21 18:23:12">2025-02-21</time></div></div></div></div></div></div></main><footer id="footer" style="background: linear-gradient(20deg,#07f6ff,#ff2af2);"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By Vareca</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.3</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: 'pQqMYlTEhUMxZC4RkrZOiHVZ-gzGzoHsz',
+      appKey: 'd93RV6GMLwZaI4Lv2I8lz4Bl',
+      avatar: 'monsterid',
+      serverURLs: 'https://pqqmylte.lc-cn-n1-shared.com',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !false) {
+    if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
